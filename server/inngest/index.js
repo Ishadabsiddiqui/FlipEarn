@@ -1,23 +1,21 @@
 import { Inngest } from "inngest";
-import prisma from "../configs/prisma";
+import prisma from "../config/prisma.js";
 
 // Create a client to send and receive events
 export const inngest = new Inngest({ id: "profile-marketplace" });
 
-// Inngest function to save user data to database
+// INNGEST function to save user data to a database
 const syncUserCreation = inngest.createFunction(
   { id: "sync-user-from-clerk" },
   { event: "clerk/user.created" },
   async ({ event }) => {
     const { data } = event;
-
-    // check if user already exists in the database
+    // Check if user is already exists in the database
     const user = await prisma.user.findFirst({
       where: { id: data.id },
     });
-
-    // Update user data if it exists
     if (user) {
+      // Update user data if it exists
       await prisma.user.update({
         where: { id: data.id },
         data: {
@@ -39,7 +37,7 @@ const syncUserCreation = inngest.createFunction(
   }
 );
 
-// Inngest function to delete user from database
+// INNGEST function to delete user from database
 const syncUserDeletion = inngest.createFunction(
   { id: "delete-user-with-clerk" },
   { event: "clerk/user.deleted" },
@@ -51,7 +49,6 @@ const syncUserDeletion = inngest.createFunction(
     const chats = await prisma.chat.findMany({
       where: { OR: [{ ownerUserId: data.id }, { chatUserId: data.id }] },
     });
-
     const transactions = await prisma.transaction.findMany({
       where: { userId: data.id },
     });
@@ -70,13 +67,13 @@ const syncUserDeletion = inngest.createFunction(
   }
 );
 
-// Inngest function to update  user data to database
+// INNGEST function to update user data in database
 const syncUserUpdation = inngest.createFunction(
   { id: "update-user-from-clerk" },
   { event: "clerk/user.updated" },
   async ({ event }) => {
     const { data } = event;
-    await prisma.user.update({
+    await prisma.user.create({
       where: { id: data.id },
       data: {
         email: data?.email_addresses[0]?.email_address,
