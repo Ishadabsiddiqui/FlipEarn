@@ -1,17 +1,23 @@
 import { ArrowDownCircleIcon, BanIcon, CheckCircle, Clock, CoinsIcon, DollarSign, Edit, Eye, EyeIcon, EyeOffIcon, LockIcon, Plus, StarIcon, TrashIcon, TrendingUp, Users, Users2, WalletIcon, XCircle } from 'lucide-react';
 import React, { useState } from 'react'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from "react-router-dom"
 import StatCard from '../components/StatCard';
 import { platformIcons } from '../assets/assets';
 import CredentialSubmission from '../components/CredentialSubmission';
 import WithdrawModal from '../components/WithdrawModal';
+import { useAuth } from "@clerk/clerk-react"
+import toast from 'react-hot-toast';
+import api from '../configs/axios';
+import { getAllPublicListing, getAllUserListing } from '../app/features/listingSlice';
 
 function MyListing() {
 
     const { userListings, balance } = useSelector((state) => state.listing);
     const currency = import.meta.env.VITE_CURRENCY || "$";
     const navigate = useNavigate();
+    const { getToken } = useAuth();
+    const dispatch = useDispatch();
 
     const [showCredentialSubmission, setShowCredentialSubmission] = useState(null)
     const [showWihdrawal, setShowWihdrawal] = useState(null)
@@ -57,15 +63,53 @@ function MyListing() {
     }
 
     const toggleStatus = async (listingId) => {
+        try {
+            toast.loading("Updating listing status...")
+            const token = await getToken();
+            const { data } = await api.put(`/api/listing/${listingId}/status`, {}, { headers: { Authorization: `Bearer ${token}` } });
+            dispatch(getAllUserListing({ getToken }));
+            dispatch(getAllPublicListing());
+            toast.dismissAll();
+            toast.success(data.message);
 
+        } catch (error) {
+            toast.dismissAll();
+            toast.error(error?.response?.data?.message || error.message)
+        }
     }
 
     const deleteListing = async (listingId) => {
+        try {
+            const confirm = window.confirm("Are you sure you want to delete this listings? if credentials are changed, new credentials will be send to your email");
+            if (!confirm) return;
+            toast.loading("Deleting listing...")
+            const token = await getToken();
+            const { data } = await api.delete(`/api/listing/${listingId}`, { headers: { Authorization: `Bearer ${token}` } });
+            dispatch(getAllUserListing({ getToken }));
+            dispatch(getAllPublicListing());
+            toast.dismissAll();
+            toast.success(data.message);
 
+        } catch (error) {
+            toast.dismissAll();
+            toast.error(error?.response?.data?.message || error.message)
+        }
     }
 
     const markAsFeatured = async (listingId) => {
+        try {
+            toast.loading("Featuring listing...")
+            const token = await getToken();
+            const { data } = await api.put(`/api/listing/featured/${listingId}`, {}, { headers: { Authorization: `Bearer ${token}` } });
+            dispatch(getAllUserListing({ getToken }));
+            dispatch(getAllPublicListing());
+            toast.dismissAll();
+            toast.success(data.message);
 
+        } catch (error) {
+            toast.dismissAll();
+            toast.error(error?.response?.data?.message || error.message)
+        }
     }
 
     return (
@@ -83,24 +127,24 @@ function MyListing() {
             </div>
             {/* --------- Stats-------- */}
             <div className='grid grid-cols-1 md:grid-cols-4 gap-6 mb-8'>
-                <StatCard title="Total Listings" value={userListings.length} icon={<Eye className='size-6 text-indigo-600' />} color='indigo' />
+                <StatCard title="Total Listings" value={userListings?.length} icon={<Eye className='size-6 text-indigo-600' />} color='indigo' />
                 <StatCard title="Active Listings" value={activeListings} icon={<CheckCircle className='size-6 text-green-600' />} color='green' />
                 <StatCard title="Sold" value={soldListings} icon={<TrendingUp className='size-6 text-indigo-600' />} color='indigo' />
-                <StatCard title="Total Value" value={`${currency}${totalValue.toLocaleString()}`} icon={<DollarSign className='size-6 text-yellow-600' />} color='yellow' />
+                <StatCard title="Total Value" value={`${currency}${totalValue?.toLocaleString()}`} icon={<DollarSign className='size-6 text-yellow-600' />} color='yellow' />
             </div>
             {/* ---------------- Balance Section------------ */}
             <div className='flex flex-col md:flex-row justify-between gap-4 xl:gap-20 p-6 mb-10 bg-white rounded-xl border border-gray-200'>
                 {[
-                    { label: "Earned", value: balance.earned, icon: WalletIcon },
-                    { label: "Withdrawn", value: balance.withdrawn, icon: ArrowDownCircleIcon },
-                    { label: "Available", value: balance.available, icon: CoinsIcon },
+                    { label: "Earned", value: balance?.earned, icon: WalletIcon },
+                    { label: "Withdrawn", value: balance?.withdrawn, icon: ArrowDownCircleIcon },
+                    { label: "Available", value: balance?.available, icon: CoinsIcon },
                 ].map((item, index) => (
                     <div onClick={() => item.label === "Available" && setShowWihdrawal(true)} key={index} className='flex flex-1 items-center justify-between p-4 rounded-lg border border-gray-200 cursor-pointer'>
                         <div className='flex items-center gap-3'>
                             <item.icon className='w-6 h-6 text-gray-500' />
                             <span className='font-medium text-gray-600'>{item.label}</span>
                         </div>
-                        <span className='text-xl font-medium text-gray-700'>{currency}{item.value.toFixed(2)}</span>
+                        <span className='text-xl font-medium text-gray-700'>{currency}{item.value?.toFixed(2)}</span>
                     </div>
                 ))}
             </div>
