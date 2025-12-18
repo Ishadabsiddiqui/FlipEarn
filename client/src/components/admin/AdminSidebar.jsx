@@ -1,14 +1,11 @@
 import { NavLink } from 'react-router-dom'
 import { BanknoteIcon, CheckIcon, LayoutDashboardIcon, ListIcon, Settings2Icon, WalletIcon } from 'lucide-react';
 import { assets } from '../../assets/assets';
+import { useUser } from '@clerk/clerk-react';
 
 const AdminSidebar = () => {
 
-    const user = {
-        firstName: 'John',
-        lastName: 'Doe',
-        imageUrl: assets.user_profile,
-    }
+    const { user } = useUser();
 
     const adminNavlinks = [
         { name: 'Dashboard', path: '/admin', icon: LayoutDashboardIcon },
@@ -25,7 +22,7 @@ const AdminSidebar = () => {
             <p className='mt-2 text-base max-md:hidden'>{user.firstName} {user.lastName}</p>
             <div className='w-full'>
                 {adminNavlinks.map((link, index) => (
-                    <NavLink key={index} to={link.path} end className={({ isActive }) => `relative flex items-center max-md:justify-center gap-2 w-full py-2.5 min-md:pl-10 first:mt-6 text-gray-600 ${isActive && 'bg-indigo-500/10 text-indigo-600 group'}`}>
+                    <NavLink key={index} to={link.path} end className={({ isActive }) => `relative flex items-center max-md:justify-center gap-2 w-full py-2.5 md:pl-10 first:mt-6 text-gray-600 ${isActive && 'bg-indigo-500/10 text-indigo-600 group'}`}>
                         {({ isActive }) => (
                             <>
                                 <link.icon className="w-5 h-5" />
