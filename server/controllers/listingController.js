@@ -301,7 +301,7 @@ export const getAllUserOrders = async (req, res) => {
       const credential = credentials.find(
         (cred) => cred.listingId === order.listingId
       );
-      return { ...order, ...credential };
+      return { ...order, credential };
     });
     return res.json({ orders: ordersWithCredentials });
   } catch (error) {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { dummyOrders, platformIcons } from '../assets/assets';
+import { platformIcons } from '../assets/assets';
 import toast from 'react-hot-toast';
 import { CheckCircle2, ChevronDown, ChevronUp, Copy, Loader2Icon } from 'lucide-react';
 import { format } from 'date-fns'
