@@ -4,7 +4,7 @@ import { inngest } from "../inngest/index.js";
 
 export const stripeWebhook = async (request, response) => {
   const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
-  const endpointSecret = process.env.WEBHOOK_SECRET_KEY;
+  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
   let event;
   if (endpointSecret) {
     // Get the signature sent by Stripe
